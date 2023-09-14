@@ -13,9 +13,9 @@
 
 ## Getting Started:
 
-* Clone the repo: git clone https://github.com/franpandol/EtherRealmMonarchs.git
-* Install dependencies: npm install
-* Deploy contracts using Hardhat: npx hardhat run scripts/deploy.js
+* Clone the repo: `git clone https://github.com/franpandol/ether-realm-monarchs-game/tree/master`
+* Install dependencies: `npm install`
+* Deploy contracts using Hardhat: `npx hardhat run scripts/deploy.js`
 
 Engage with the EtherRealm and aim to be the supreme monarch!
 
