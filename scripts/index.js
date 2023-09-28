@@ -24,12 +24,22 @@ async function interactWithMonarchs(contractAddress, newKing) {
     // Retrieve the current claim price
     const currentClaimPrice = await monarchsInstance.claimPrice();
     console.log('Current claim price in ETH:', hre.ethers.utils.formatEther(currentClaimPrice));
+
+    // Join the Royal Guild
+    const tx2 = await monarchsInstance.joinRoyalGuild();
+    await tx2.wait();
+    // Join the Royal Guild
+    const tx3 = await monarchsInstance.getGuildMembers();
+    console.log(tx3)
 }
 
 // Main execution
 (async () => {
+
+
     const contractAddressData = fs.readFileSync('contracts_build/contract-address.json', 'utf8');
     const MONARCHS_CONTRACT_ADDRESS = JSON.parse(contractAddressData)["Monarchs"];
+    const ROYALGUILD_CONTRACT_ADDRESS = JSON.parse(contractAddressData)["RoyalGuild"];  // Make sure to add this
 
     // Extract newKing value from environment variable (amount in ETH to send for claiming throne)
     const newKingValue = process.env.NEW_KING_VALUE;
@@ -41,9 +51,9 @@ async function interactWithMonarchs(contractAddress, newKing) {
 
     try {
         await interactWithMonarchs(MONARCHS_CONTRACT_ADDRESS, newKingValue);
-        process.exit(0);
     } catch (error) {
         console.error("Error interacting with Monarchs:", error.message);
         process.exit(1);
     }
+
 })();

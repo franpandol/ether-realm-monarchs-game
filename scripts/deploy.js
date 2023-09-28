@@ -16,17 +16,27 @@ async function main() {
   );
 
 
-  const Wall = await ethers.getContractFactory("Monarchs");
-  const wallContract = await Wall.deploy();
-  await wallContract.deployed();
+  const Monarchs = await ethers.getContractFactory("Monarchs");
+  const monarchsContract = await Monarchs.deploy();
+  await monarchsContract.deployed();
 
-  console.log("Wall contract address:", wallContract.address);
 
-  // We also save the contract's artifacts and address in the frontend directory
-  saveFrontendFiles(wallContract);
+  // Create a promise to wait for the RoyalGuildCreated event
+  const royalGuildPromise = new Promise((resolve, reject) => {
+    monarchsContract.once("RoyalGuildCreated", (address) => {
+      console.log("RoyalGuild contract address:", address);
+      resolve(address);
+    });
+  });
+  
+  // Wait for the RoyalGuildCreated event to be emitted
+  const royalGuildAddress = await royalGuildPromise;
+
+  // We also save the contract's artifacts and addresses in the frontend directory
+  saveFrontendFiles(monarchsContract, royalGuildAddress);
 }
 
-function saveFrontendFiles(wallContract) {
+function saveFrontendFiles(monarchsContract, royalGuildAddress) {
   const fs = require("fs");
   const contractsDir = __dirname + "/../contracts_build";
 
@@ -36,16 +46,23 @@ function saveFrontendFiles(wallContract) {
 
   fs.writeFileSync(
     contractsDir + "/contract-address.json",
-    JSON.stringify({ Monarchs: wallContract.address }, undefined, 2)
+    JSON.stringify({ Monarchs: monarchsContract.address, RoyalGuild: royalGuildAddress }, undefined, 2)
   );
 
-  const WallArtifact = artifacts.readArtifactSync("Monarchs");
+  const MonarchsArtifact = artifacts.readArtifactSync("Monarchs");
+  const RoyalGuildArtifact = artifacts.readArtifactSync("RoyalGuild"); // Read the RoyalGuild artifact
 
   fs.writeFileSync(
     contractsDir + "/Monarchs.json",
-    JSON.stringify(WallArtifact, null, 2)
+    JSON.stringify(MonarchsArtifact, null, 2)
+  );
+
+  fs.writeFileSync(
+    contractsDir + "/RoyalGuild.json",
+    JSON.stringify(RoyalGuildArtifact, null, 2) // Save the RoyalGuild artifact
   );
 }
+
 
 main()
   .then(() => process.exit(0))
