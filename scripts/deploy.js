@@ -8,6 +8,8 @@ async function main() {
     );
   }
 
+  const { ethers, upgrades } = require("hardhat");
+
   // ethers is available in the global scope
   const [deployer] = await ethers.getSigners();
   console.log(
@@ -15,28 +17,17 @@ async function main() {
     await deployer.getAddress()
   );
 
-
+  // deploy upgradeable contract
   const Monarchs = await ethers.getContractFactory("Monarchs");
-  const monarchsContract = await Monarchs.deploy();
-  await monarchsContract.deployed();
-
-
-  // Create a promise to wait for the RoyalGuildCreated event
-  const royalGuildPromise = new Promise((resolve, reject) => {
-    monarchsContract.once("RoyalGuildCreated", (address) => {
-      console.log("RoyalGuild contract address:", address);
-      resolve(address);
-    });
-  });
-  
-  // Wait for the RoyalGuildCreated event to be emitted
-  const royalGuildAddress = await royalGuildPromise;
+  const monarchs  = await upgrades.deployProxy(Monarchs, []);
+  const monarchsContract = await monarchs.waitForDeployment();  
+  console.log("Monarchs deployed to:", await monarchsContract.getAddress());
 
   // We also save the contract's artifacts and addresses in the frontend directory
-  saveFrontendFiles(monarchsContract, royalGuildAddress);
+  saveFrontendFiles(monarchsContract);
 }
 
-function saveFrontendFiles(monarchsContract, royalGuildAddress) {
+function saveFrontendFiles(monarchsContract) {
   const fs = require("fs");
   const contractsDir = __dirname + "/../contracts_build";
 
@@ -46,20 +37,14 @@ function saveFrontendFiles(monarchsContract, royalGuildAddress) {
 
   fs.writeFileSync(
     contractsDir + "/contract-address.json",
-    JSON.stringify({ Monarchs: monarchsContract.address, RoyalGuild: royalGuildAddress }, undefined, 2)
+    JSON.stringify({ Monarchs: monarchsContract.address}, undefined, 2)
   );
 
   const MonarchsArtifact = artifacts.readArtifactSync("Monarchs");
-  const RoyalGuildArtifact = artifacts.readArtifactSync("RoyalGuild"); // Read the RoyalGuild artifact
 
   fs.writeFileSync(
     contractsDir + "/Monarchs.json",
     JSON.stringify(MonarchsArtifact, null, 2)
-  );
-
-  fs.writeFileSync(
-    contractsDir + "/RoyalGuild.json",
-    JSON.stringify(RoyalGuildArtifact, null, 2) // Save the RoyalGuild artifact
   );
 }
 
