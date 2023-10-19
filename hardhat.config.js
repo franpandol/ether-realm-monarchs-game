@@ -5,7 +5,7 @@ const { alchemyApiKey, mnemonic, account } = require('./secrets.json');
 module.exports = {
   solidity: "0.8.20",
   networks: {
-     ropsten: {
+     sepolia: {
        url: alchemyApiKey,
        accounts: [account,],
        gas: "auto",
